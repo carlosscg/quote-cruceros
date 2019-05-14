@@ -16,6 +16,15 @@ functions:
       artifact: bin/release/netcoreapp2.1/hello.zip
     events:
       - sns: SNSCruiseTopic
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - sns:GetItem
+          - sns:PutItem
+          - sqs:GetItem
+          - sqs:PutItem
+        Resources:
+
       # - sqs: cruiseProviderOne
       # - sqs:
       #     arn:
@@ -137,29 +146,7 @@ resources:
         Protocol: sqs
         RawMessageDelivery: 'true'
     
-    # #SQS
-    # cruiseProviderOne:
-    #   Type: "AWS::SQS::Queue"
-    #   Properties:
-    #     QueueName: "cruiseProviderOne"
-
-    # #SNS
-    # CruiseTopic:
-    #   Type: AWS::SNS::Topic
-    #   Properties:
-    #     DisplayName: Manejador de Crucero
-    #     TopicName: cruiseManager
-    #     Subscription:
-    #       Protocol: SQS
-    #       Endpoint: { “Fn::Join” : [“”, [“arn:aws:sqs:us-east-1:“, { “Ref” : “AWS::AccountId” }, “:cruiseProviderOne” ] ] }
-    #       #Endpoint: { “Fn::Join” : [“”, [“arn:aws:sqs:${self:provider.region}:“, { “Ref” : “AWS::AccountId” }, “:${self:resources.Resources.cruiseProviderOne.Properties.QueueName}” ] ] }
-
-    # #Subscriptions:
-    # # cruiseProviderOne:
-    # #   Type: AWS::SNS::Subscription
-    # #   Properties:
-    # #     Protocol: SQS
-    # #     TopicArn: {"Ref":"CruiseTopic"}
-
-          
+plugins:
+ - serverless-pseudo-parameters
+ - serverless-iam-roles-per-function
 

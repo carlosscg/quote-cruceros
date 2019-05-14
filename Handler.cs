@@ -9,37 +9,59 @@ using System.Threading.Tasks;
 
 namespace AwsDotnetCsharp
 {
-    public class Handler
-    {
-      AmazonSimpleNotificationServiceClient _snsService;
-       public Response Hello(Request request)
-       {
-         var SNSRequest = new PublishRequest{
-           Message = $"Test at {DateTime.UtcNow.ToLongDateString()}",
-           TargetArn = "cruiseManager"
-         };
-         SNSRequest.MessageAttributes.Add("ProviderName",
-         new MessageAttributeValue(){ 
-            DataType = "String",StringValue = "Hotelbeds"  
-         });
+    public class Handler  {
+      public Response Hello(Request request){
+        var client = new AmazonSimpleNotificationServiceClient(Amazon.RegionEndpoint.USEast1);
 
-         Console.WriteLine("Request to be sent " + SNSRequest.Message);
-         
-         Console.WriteLine("Publishing the request");
-
-         var r = SendSNS(SNSRequest);
-
-
-
-           return new Response("Go Serverless v1.0! Your function executed successfully!", request);
-       }
-
-       public async Task<PublishResponse> SendSNS(PublishRequest request) {
-         var response = await _snsService.PublishAsync(request);
-         Console.WriteLine("response " + response.MessageId);
-         return response;
+            SendMessage(client).Wait();
+            
+            return new Response("Go Serverless v1.0! Your function executed successfully!", request);
       }
+      static async Task SendMessage(IAmazonSimpleNotificationService snsClient)
+        {
+          var snsARN = Environment.GetEnvironmentVariable("TargetARN");
+          System.Console.WriteLine("snsARN: {0}", snsARN);
+            var request = new PublishRequest
+            {
+                TopicArn = "arn:aws:sns:us-east-1:150135223216:SNSCruiseTopic", //"cruiseManager",
+                Message = "Test Message"
+            };
+
+            await snsClient.PublishAsync(request);
+        }
     }
+
+    // public class Handler
+    // {
+    //   AmazonSimpleNotificationServiceClient _snsService;
+    //    public Response Hello(Request request)
+    //    {
+    //      var SNSRequest = new PublishRequest{
+    //        Message = $"Test at {DateTime.UtcNow.ToLongDateString()}",
+    //        TargetArn = "cruiseManager"
+    //      };
+    //      SNSRequest.MessageAttributes.Add("ProviderName",
+    //      new MessageAttributeValue(){ 
+    //         DataType = "String",StringValue = "Hotelbeds"  
+    //      });
+
+    //      Console.WriteLine("Request to be sent " + SNSRequest.Message);
+         
+    //      Console.WriteLine("Publishing the request");
+
+    //      var r = SendSNS(SNSRequest);
+
+
+
+    //        return new Response("Go Serverless v1.0! Your function executed successfully!", request);
+    //    }
+
+    //    public async Task<PublishResponse> SendSNS(PublishRequest request) {
+    //      var response = await _snsService.PublishAsync(request);
+    //      Console.WriteLine("response " + response.MessageId);
+    //      return response;
+    //   }
+    // }
     
 
     public class Response
