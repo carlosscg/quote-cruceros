@@ -3,32 +3,50 @@ using System;
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 using System.Threading.Tasks;
-
+using System.Linq;
 
 [assembly:LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
 
 namespace AwsDotnetCsharp
 {
     public class Handler  {
-      public Response Hello(Request request){
-        var client = new AmazonSimpleNotificationServiceClient(Amazon.RegionEndpoint.USEast1);
-
-            SendMessage(client).Wait();
-            
-            return new Response("Go Serverless v1.0! Your function executed successfully!", request);
+        private AmazonSimpleNotificationServiceClient _snsClient;
+        public string _topicName { get; private set; }
+        internal string _topicArn { get; private set; }
+        public string _subscriptionName { get; private set; }
+        private string _subscriptionArn;
+      public Handler()
+      {
+        _snsClient = new AmazonSimpleNotificationServiceClient(Amazon.RegionEndpoint.USEast1);
       }
-      static async Task SendMessage(IAmazonSimpleNotificationService snsClient)
-        {
-          var snsARN = Environment.GetEnvironmentVariable("TargetARN");
-          System.Console.WriteLine("snsARN: {0}", snsARN);
-            var request = new PublishRequest
-            {
-                TopicArn = "arn:aws:sns:us-east-1:150135223216:SNSCruiseTopic", //"cruiseManager",
-                Message = "Test Message"
-            };
 
-            await snsClient.PublishAsync(request);
+      public Response Manager(Request request){
+        var snsRequest = new PublishRequest
+        {
+          TopicArn = _topicArn, //"arn:aws:sns:us-east-1:150135223216:SNSCruiseTopic", //"cruiseManager",
+          Message = "Test Message"
+        };
+
+        SendMessage(_snsClient, snsRequest).Wait();
+        return new Response("Go Serverless v1.0! Your function executed successfully!", request);
+      }
+
+      public bool TopicExists(string topicName){
+        var exists= false;
+        var matchString = string.Format(":{0}", topicName);
+        var response = _snsClient.ListTopicsAsync().Result;
+        var matches = response.Topics.Where(x => x.TopicArn.EndsWith(matchString));
+        if(matches.Count() == 1){
+          _topicArn = matches.ElementAt(0).TopicArn;
+          exists = true;
         }
+        return exists;
+      }
+
+      static async Task SendMessage(IAmazonSimpleNotificationService snsClient, PublishRequest request)
+      {
+            await snsClient.PublishAsync(request);
+      }
     }
 
     // public class Handler

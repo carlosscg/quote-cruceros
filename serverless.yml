@@ -5,25 +5,23 @@ provider:
   name: aws
   runtime: dotnetcore2.1
   region: us-east-1
+  role: arn:aws:iam::150135223216:role/lambdaFullAccessSNS
 
 package:
   individually: true
 
 functions:
   hello:
-    handler: CsharpHandlers::AwsDotnetCsharp.Handler::Hello
+    handler: CsharpHandlers::AwsDotnetCsharp.Handler::Manager
     package:
-      artifact: bin/release/netcoreapp2.1/hello.zip
+      artifact: bin/release/netcoreapp2.1/manager.zip
     events:
       - sns: SNSCruiseTopic
-    iamRoleStatements:
-      - Effect: Allow
-        Action:
-          - sns:GetItem
-          - sns:PutItem
-          - sqs:GetItem
-          - sqs:PutItem
-        Resources:
+    # iamRoleStatements:
+    #   - Effect: "Allow"
+    #     Action:
+    #       - "sns:*"
+    #     Resources: arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:SNSCruiseTopic
 
       # - sqs: cruiseProviderOne
       # - sqs:
